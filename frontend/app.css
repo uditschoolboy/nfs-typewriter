@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 80vh;
+    font-family: 'Roboto', sans-serif;
+}
+.container {
+    border: 5px solid black;
+    border-radius: 13px;
+    width: 70%;
+    height: 50%;
+    padding: 10px;
+}
+#text {
+    font-size: 30px;
+    letter-spacing: 3px;
+    margin: 0;
+}
+.green {
+    scale: 1.5;
+    color: lightseagreen;
+    text-decoration: underline;
+}
+.red {
+    scale: 1.5;
+    color: red;
+    text-decoration: underline;
+}
+.yellow {
+    scale: 1.5;
+    color: yellow;
+    text-decoration: underline;
+}
+.pink {
+    scale: 1.5;
+    color: pink;
+    text-decoration: underline;
+}
+.blue {
+    scale: 1.5;
+    color: blue;
+    text-decoration: underline;
+}
