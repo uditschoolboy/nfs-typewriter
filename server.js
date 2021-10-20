@@ -27,18 +27,34 @@ io.on('connection', (socket) => {
         console.log(data);
         addUser(data);
 
+        //return the assigned color and id to the player
+        socket.emit('yourInfo', {
+            color: data.color,
+            id: data.id
+        });
+
         //giving the information of peers to all users
         io.to(data.room).emit('roomUsers', {
             users: getUsersInRoom(data.room)
         });
     });
+    //on position update by a player
     socket.on('positionUpdate', data => {
         updatePosition(socket.id, data.pos);
-        console.log(data);
         const user = getUser(socket.id);
         socket.broadcast.to(user.room).emit('positionUpdateOthers', user);
     });
-    socket.on('disconnect', data => {
+    //when some user has finished typing
+    socket.on('finished', data => {
+        console.log("Okay ! it seems you have finished");
+        const user = getUser(socket.id);
+        io.to(user.room).emit('gameOver', {
+            name: user.name,
+            color: user.color
+        });
+    });
+    //listening when user disconnects
+    socket.on('disconnect', () => {
         const user = getUser(socket.id);
         console.log(user.name + " left");
         removeUser(socket.id);

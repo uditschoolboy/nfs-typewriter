@@ -8,9 +8,20 @@
     <title>Type Racer</title>
 </head>
 <body>
-    <div class="container">
+    <div class="form-container">
+        <input type="text" placeholder = "Name" name="name" id="name"/>
+        <input type="text" placeholder="GameId" name="room" id="room"/>
+        <button type="submit" id="playButton">Play</button>
+    </div>
+    <div class="text-container">
         <p id="text">
         </p>
+    </div>
+    <div class="player-container">
+
+    </div>
+    <div class="result-container">
+
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>

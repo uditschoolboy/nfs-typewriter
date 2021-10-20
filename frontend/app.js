@@ -1,55 +1,167 @@
-const text = document.getElementById('text');
-const para = "Well, I will call you darlin' and everything will be okay. 'Cause I know that I am yours and you are mine. Doesn't matter anyway. In the night, we'll take a walk, it's nothing funny. Just to talk. Put your hand in mine. You know that I want to be with you all the time. Well, I have called you darlin' and I'll say it again, again. Until I make you mine."
-let peers = [];
-
-//initialize the socket stuff
-const socket = io();
-socket.on("connect", () => {
-    socket.emit('joinroom', {
-        name: "Udit",
-        room: "2",
-        pos: 0
-    });
-});
-
-//Getting info about the peers which are currently there
-socket.on("roomUsers", data => {
-    peers = data.users;
-    console.log(peers);
-});
-
-//Getting position updates of peers
-socket.on('positionUpdateOthers', user => {
-    const idx = peers.findIndex(peer => peer.id === user.id);
-    spans[peers[idx].pos].classList.remove(`${peers[idx].color}`);
-    peers[idx].pos = user.pos;
-    spans[peers[idx].pos].classList.add(`${peers[idx].color}`);
-    console.log(peers[idx].name, peers[idx].pos);
-})
-
-//breaking the paragraph into letters and making a span for each letter
-const letters = [...para];
-const spans = letters.map(letter => {
-    const span = document.createElement('span');
-    span.innerHTML = letter;
-    return span;
-});
-
-//adding the spans to text element in the document
-spans.forEach(span => text.appendChild(span));
-let position = 0;
-spans[0].classList.add('green');
-
-
-//listening for key presses and updating the position of the current letter.
-document.addEventListener('keydown', e => {
-    if(position === letters.length) return;
-    if(e.key === letters[position]) {
-        spans[position].classList.remove(`green`);
-        position++;
-        spans[position].classList.add(`green`);
-        socket.emit('positionUpdate', {
-            pos : position
-        })
+//Game 1st screen taking name and room from user
+const textContainer = document.querySelector('.text-container');
+const playerContainer = document.querySelector('.player-container');
+const formContainer = document.querySelector('.form-container');
+const resultContainer = document.querySelector('.result-container');
+const playButton = document.getElementById('playButton');
+const nameInput = document.getElementById('name');
+const roomInput = document.getElementById('room');
+let myName, myRoom, winner, winnerColor;
+//setting game stage
+setGameStage(1);
+function setGameStage(stage) {
+    if(stage === 1) {
+        textContainer.style.display = 'none';
+        playerContainer.style.display = 'none';
+        formContainer.style.display = 'flex';
+        resultContainer.style.display = 'none';
+    } else if(stage === 2) {
+        textContainer.style.display = 'flex';
+        playerContainer.style.display = 'flex';
+        formContainer.style.display = 'none';
+        resultContainer.style.display = 'none';
+        loadGame();
+    } else {
+        textContainer.style.display = 'none';
+        playerContainer.style.display = 'none';
+        formContainer.style.display = 'none';
+        resultContainer.style.display = 'flex';
+        declareResult();
     }
+}
+
+
+//setting game stage to 2 on submitting username and gameID
+playButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    myName = nameInput.value;
+    myRoom = roomInput.value;
+    nameInput.value = '';
+    roomInput.value = '';
+    setGameStage(2);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Game stage 2 -> Game started
+function loadGame() {
+    const text = document.getElementById('text');
+    const para = "well there it is";
+    let peers = [];
+
+    //initialize the socket stuff
+    const socket = io();
+    socket.on("connect", () => {
+        socket.emit('joinroom', {
+            name: myName,
+            room: myRoom,
+            pos: 0
+        });
+    });
+
+    //Getting info about the peers which are currently there
+    socket.on("roomUsers", data => {
+        peers = data.users;
+        //TODO display players with their colors
+        playerContainer.innerHTML = peers.map(peer => {
+            return (
+                `<div class="player-info" style="border-left: 15px solid ${peer.color};">
+                    ${peer.name}
+                </div>`
+            )
+        }).join('');
+        peers.forEach(peer => updatePosition(peer));
+        console.log(peers);
+    });
+
+    //Getting position updates of peers
+    socket.on('positionUpdateOthers', user => {
+        updatePosition(user);
+    });
+    //Updating position of user
+    function updatePosition(user) {
+        const idx = peers.findIndex(peer => peer.id === user.id);
+        spans[peers[idx].pos].classList.remove(`${peers[idx].color}`);
+        peers[idx].pos = user.pos;
+        spans[peers[idx].pos].classList.add(`${peers[idx].color}`);
+    }
+
+    //breaking the paragraph into letters and making a span for each letter
+    const letters = [...para];
+    const spans = letters.map(letter => {
+        const span = document.createElement('span');
+        span.innerHTML = letter;
+        return span;
+    });
+
+    //adding the spans to text element in the document
+    spans.forEach(span => text.appendChild(span));
+    let myPosition = 0;
+
+    //Getting color and id
+    let myColor, myId;
+    socket.on("yourInfo", data => {
+        myColor = data.color;
+        myId = data.id;
+        spans[0].classList.add(myColor);
+        
+    });
+
+    //listening for key presses and updating the myPosition of the current letter.
+    document.addEventListener('keydown', e => {
+        if(e.key === letters[myPosition]) {
+            if(myPosition === letters.length - 1) {
+                console.log("I have finished");
+                socket.emit('finished');
+                return;
+            }
+            spans[myPosition].classList.remove(`${myColor}`);
+            myPosition++;
+            spans[myPosition].classList.add(`${myColor}`);
+            socket.emit('positionUpdate', {
+                pos : myPosition
+            })
+        }
+    });
+
+    //On game finished. disconnect and load the results
+    socket.on('gameOver', result => {
+        socket.disconnect();
+        winner = result.name;
+        winnerColor = result.color;
+        setGameStage(3);
+    });
+}
+
+
+
+
+
+
+//Game stage: 3 -> game finished
+function declareResult() {
+    resultContainer.innerHTML = `<h3 class="${winnerColor}">${winner} is the winner!! Congrats</h3>
+        <h5>Reload to play again</h5>`;
+}
