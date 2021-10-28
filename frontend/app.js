@@ -6,7 +6,7 @@ const resultContainer = document.querySelector('.result-container');
 const playButton = document.getElementById('playButton');
 const nameInput = document.getElementById('name');
 const roomInput = document.getElementById('room');
-let myName, myRoom, winner, winnerColor;
+let myName, myRoom, results;
 //setting game stage
 setGameStage(1);
 function setGameStage(stage) {
@@ -68,7 +68,7 @@ playButton.addEventListener('click', (e) => {
 //Game stage 2 -> Game started
 function loadGame() {
     const text = document.getElementById('text');
-    const para = "well there it is";
+    const para = "I've been reading books of old. The legends and the myths. Achilles and his gold. Hercules and his gifts. Spider-Man's control. And Batman with his fists. And clearly I don't see myself upon that list";
     let peers = [];
 
     //initialize the socket stuff
@@ -149,8 +149,7 @@ function loadGame() {
     //On game finished. disconnect and load the results
     socket.on('gameOver', result => {
         socket.disconnect();
-        winner = result.name;
-        winnerColor = result.color;
+        results = result;
         setGameStage(3);
     });
 }
@@ -162,6 +161,13 @@ function loadGame() {
 
 //Game stage: 3 -> game finished
 function declareResult() {
-    resultContainer.innerHTML = `<h3 class="${winnerColor}">${winner} is the winner!! Congrats</h3>
-        <h5>Reload to play again</h5>`;
+    const listItems = results.map(pinfo => {
+        return `
+            <li>
+                ${pinfo.name} (${pinfo.pos} words).
+            </li>
+        `;
+    }).join('');
+    const rankListTitle = "<h3>RankList</h3>";
+    resultContainer.innerHTML = `${rankListTitle} <ol>${listItems}</ol>`;
 }

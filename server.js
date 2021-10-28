@@ -46,12 +46,11 @@ io.on('connection', (socket) => {
     });
     //when some user has finished typing
     socket.on('finished', data => {
-        console.log("Okay ! it seems you have finished");
         const user = getUser(socket.id);
-        io.to(user.room).emit('gameOver', {
-            name: user.name,
-            color: user.color
-        });
+        const usersInRoom = getUsersInRoom(user.room);
+        usersInRoom.sort((user1, user2) => user2.pos - user1.pos);
+        console.log(usersInRoom);
+        io.to(user.room).emit('gameOver', usersInRoom);
     });
     //listening when user disconnects
     socket.on('disconnect', () => {
